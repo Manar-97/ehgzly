@@ -5,8 +5,34 @@ import 'package:flutter/foundation.dart';
 class ApiService {
   static const String _baseUrl = 'http://192.168.8.174/coursephp/auth';
 
+  // ----------------- Helper Method -----------------
+  dynamic _handleResponse(http.Response response, String methodName) {
+    debugPrint("📩 [$methodName] Raw response: ${response.body}");
+
+    if (response.body.isEmpty) {
+      throw Exception("❌ [$methodName] Empty response from server");
+    }
+
+    try {
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        if (responseData['status'] == 'success') {
+          return responseData;
+        } else {
+          throw Exception(responseData['message'] ?? "❌ [$methodName] Failed");
+        }
+      } else {
+        throw Exception("❌ [$methodName] Server error: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("❌ [$methodName] JSON decode error: $e");
+      throw Exception("❌ [$methodName] Invalid JSON response");
+    }
+  }
+
   // ----------------- Sign Up -----------------
-  Future<dynamic> signUp(
+  Future<Map<String, dynamic>> signUp(
     String username,
     String email,
     String password,
@@ -15,63 +41,47 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/signup.php'),
-        body: {
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
           'username': username,
           'email': email,
           'password': password,
           'role': role,
-        },
+        }),
       );
-
-      final responseData = jsonDecode(response.body);
-      if (response.statusCode == 200 && responseData['status'] == 'success') {
-        return responseData;
-      } else {
-        debugPrint("❌ SignUp Error: ${responseData['message']}");
-        throw Exception(responseData['message'] ?? 'Sign up failed');
-      }
+      return _handleResponse(response, "signUp");
     } catch (e) {
       debugPrint("❌ Exception in signUp: $e");
-      throw Exception('Error: $e');
+      rethrow;
     }
   }
 
   // ----------------- Login -----------------
-  Future<dynamic> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/login.php'),
-        body: {'email': email, 'password': password},
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
       );
-
-      final responseData = jsonDecode(response.body);
-      if (response.statusCode == 200 && responseData['status'] == 'success') {
-        return responseData;
-      } else {
-        debugPrint("❌ Login Error: ${responseData['message']}");
-        throw Exception(responseData['message'] ?? 'Login failed');
-      }
+      return _handleResponse(response, "login");
     } catch (e) {
       debugPrint("❌ Exception in login: $e");
-      throw Exception('Error: $e');
+      rethrow;
     }
   }
 
   // ----------------- Logout -----------------
-  Future<dynamic> logout() async {
+  Future<Map<String, dynamic>> logout() async {
     try {
-      final response = await http.post(Uri.parse('$_baseUrl/logout.php'));
-
-      final responseData = jsonDecode(response.body);
-      if (response.statusCode == 200 && responseData['status'] == 'success') {
-        return responseData;
-      } else {
-        debugPrint("❌ Logout Error: ${responseData['message']}");
-        throw Exception('Logout failed');
-      }
+      final response = await http.post(
+        Uri.parse('$_baseUrl/logout.php'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      return _handleResponse(response, "logout");
     } catch (e) {
       debugPrint("❌ Exception in logout: $e");
-      throw Exception('Error: $e');
+      rethrow;
     }
   }
 
@@ -80,66 +90,51 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/request_reset.php'),
-        body: {'email': email},
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
       );
-
-      debugPrint("Raw response: ${response.body}");
-
-      final responseData = jsonDecode(response.body);
-      if (responseData['status'] == 'success') {
-        return responseData;
-      } else {
-        throw Exception(responseData['message'] ?? 'Request reset failed');
-      }
+      return _handleResponse(response, "forgotPassword");
     } catch (e) {
       debugPrint("❌ Exception in forgotPassword: $e");
-      throw Exception('Error: $e');
+      rethrow;
     }
   }
 
   // ----------------- Verify Reset Code -----------------
-  Future<Map<String, dynamic>> verifyResetCode(
-    String email,
-    String otp, // تم تعديل الاسم ليتوافق مع السيرفر
-  ) async {
+  Future<Map<String, dynamic>> verifyResetCode(String email, String otp) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/verify_otp.php'),
-        body: {'email': email, 'otp': otp},
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
       );
-
-      final responseData = jsonDecode(response.body);
-      if (responseData['status'] == 'success') {
-        return responseData;
-      } else {
-        throw Exception(responseData['message'] ?? 'Invalid code');
-      }
+      return _handleResponse(response, "verifyResetCode");
     } catch (e) {
       debugPrint("❌ Exception in verifyResetCode: $e");
-      throw Exception('Error: $e');
+      rethrow;
     }
   }
 
   // ----------------- Reset Password -----------------
   Future<Map<String, dynamic>> resetPassword(
     String email,
-    String newPassword, // تم تعديل الاسم ليتوافق مع السيرفر
+    String code,
+    String newPassword,
   ) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/reset_password.php'),
-        body: {'email': email, 'password': newPassword},
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          "otp": code,
+          'password': newPassword,
+        }),
       );
-
-      final responseData = jsonDecode(response.body);
-      if (responseData['status'] == 'success') {
-        return responseData;
-      } else {
-        throw Exception(responseData['message'] ?? 'Reset failed');
-      }
+      return _handleResponse(response, "resetPassword");
     } catch (e) {
       debugPrint("❌ Exception in resetPassword: $e");
-      throw Exception('Error: $e');
+      rethrow;
     }
   }
 }

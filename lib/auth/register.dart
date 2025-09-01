@@ -17,6 +17,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
   String _role = 'user';
+  bool _isPasswordVisible = false;
 
   Future<void> _signUp() async {
     final apiService = ApiService();
@@ -95,7 +96,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       }
                       return null;
                     },
-                    suffixIcon: Icons.person,
+                    suffixIcon: Icon(Icons.person,color: Colors.grey[600]),
                   ),
                   CustomTextForm(
                     controller: _email,
@@ -107,7 +108,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       }
                       return null;
                     },
-                    suffixIcon: Icons.email,
+                    suffixIcon: Icon(Icons.email,color: Colors.grey[600]),
                   ),
                   CustomTextForm(
                     controller: _password,
@@ -120,7 +121,17 @@ class _SignUpPageState extends State<SignUpPage> {
                       }
                       return null;
                     },
-                    suffixIcon: Icons.remove_red_eye,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey[600],
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
                   ),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(

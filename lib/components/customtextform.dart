@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class CustomTextForm extends StatelessWidget {
   final String hintText;
   final String label;
-  final IconData suffixIcon;
+  final Widget? suffixIcon; // 👈 بدل IconData
   final TextEditingController controller;
-  final String? Function(String?)? validator; // ✅ عشان الفاليديشين
-  final bool obscureText; // ✅ عشان الباسورد
-  final TextInputType keyboardType; // ✅ نوع الكيبورد
+  final String? Function(String?)? validator;
+  final bool obscureText;
+  final TextInputType keyboardType;
 
   const CustomTextForm({
     super.key,
@@ -15,21 +15,24 @@ class CustomTextForm extends StatelessWidget {
     required this.controller,
     required this.label,
     this.validator,
-    this.obscureText = false, // الافتراضي مش مخفي
+    this.obscureText = false,
     this.keyboardType = TextInputType.text,
-    required this.suffixIcon, // الافتراضي نص
+    this.suffixIcon, // 👈 مش required
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),color: Colors.white),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        color: Colors.white,
+      ),
       margin: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         controller: controller,
-        obscureText: obscureText, // ✅
-        keyboardType: keyboardType, // ✅
-        validator: validator, // ✅
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        validator: validator,
         decoration: InputDecoration(
           labelText: label,
           contentPadding: const EdgeInsets.symmetric(
@@ -37,7 +40,7 @@ class CustomTextForm extends StatelessWidget {
             horizontal: 15,
           ),
           hintText: hintText,
-          suffixIcon: Icon(suffixIcon, color: Colors.grey[600]),
+          suffixIcon: suffixIcon, // 👈 دلوقتي بيقبل أي ويدجت
           border: const OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black, width: 1),
             borderRadius: BorderRadius.all(Radius.circular(30)),

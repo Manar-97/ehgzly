@@ -14,7 +14,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,8 +30,12 @@ class MyApp extends StatelessWidget {
           return VerifyOtpScreen(email: args);
         },
         ResetPasswordScreen.routeName: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as String;
-          return ResetPasswordScreen(code: args);
+          final args =
+              ModalRoute.of(context)!.settings.arguments as Map<String, String>;
+          return ResetPasswordScreen(
+            email: args['email']!,
+            code: args['code']!,
+          );
         },
       },
     );
